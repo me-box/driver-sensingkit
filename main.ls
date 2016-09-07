@@ -46,6 +46,6 @@ app.get \/is-connected (req, res) !->
 
 app.post \/set-mobile-ip (req, res) !->
   mobile-ip := req.body.ip
-  res.redirect \/
+  res.redirect \../
 
 app.listen 8080
