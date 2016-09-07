@@ -1,0 +1,11 @@
+{
+	"endpoints": [
+		{
+			"method": "GET",
+			"url": "/api/*",
+			"description": "Forwards requests to a mobile phone as defined at https://github.com/me-box/databox-source-mobile#api-endpoints",
+			"parameters": [],
+			"response": {}
+		}
+	]
+}

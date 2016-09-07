@@ -1,0 +1,34 @@
+{
+  "name": "databox-driver-mobile",
+  "version": "0.1.0",
+  "description": "A Databox driver that provides SensingKit mobile sensor data",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "lsc main.ls",
+    "release": "docker build -t databox-driver-mobile . && docker tag databox-driver-mobile amar.io:5000/databox-driver-mobile && docker push amar.io:5000/databox-driver-mobile"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yousefamar/databox-driver-mobile.git"
+  },
+  "keywords": [
+    "docker",
+    "databox",
+    "personal",
+    "data",
+    "mobile",
+    "driver"
+  ],
+  "author": "Yousef Amar <yousef@amar.io> (http://yousefamar.com/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yousefamar/databox-driver-mobile/issues"
+  },
+  "homepage": "https://github.com/yousefamar/databox-driver-mobile#readme",
+  "dependencies": {
+    "body-parser": "^1.14.2",
+    "express": "^4.13.4",
+    "livescript": "^1.4.0",
+    "request": "^2.74.0"
+  }
+}
