@@ -33,7 +33,7 @@ app.get \/status (req, res) !->
   error, response, body <-! request "http://#mobile-ip:8080"
   res.send if err? then \standby else \active
 
-app.get \/api/* (req, res) !->
+app.post \/api/* (req, res) !->
   request "http://#mobile-ip:8080/#{req.params[0]}" .pipe res
 
 app.get \/is-connected (req, res) !->
