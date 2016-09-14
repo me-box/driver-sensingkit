@@ -44,8 +44,8 @@ app.get \/is-connected (req, res) !->
   error, response, body <-! request "http://#mobile-ip:8080"
   res.send '' + not error?
 
-app.post \/set-mobile-ip (req, res) !->
-  mobile-ip := req.body.ip
+app.get \/set-mobile-ip (req, res) !->
+  mobile-ip := req.query.ip
   res.end!
   #res.redirect \../
 

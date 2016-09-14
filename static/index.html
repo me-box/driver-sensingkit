@@ -25,14 +25,9 @@
 			})();
 			$('#ipForm').submit(function(e) {
 				$('input[type="submit"]').prop('disabled', true);
-				$.ajax({
-					type: 'POST',
-					url: 'set-mobile-ip',
-					data: { ip: $('input[type="text"]').val() },
-					success: function(data) {
-						updateStatus();
-						$('input[type="submit"]').prop('disabled', false);
-					}
+				$.get('set-mobile-ip', { ip: $('input[type="text"]').val() }, function() {
+					updateStatus();
+					$('input[type="submit"]').prop('disabled', false);
 				});
 				e.preventDefault();
 			});
