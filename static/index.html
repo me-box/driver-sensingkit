@@ -14,11 +14,27 @@
 		</div>
 		<p id="connect-status"></p>
 		<script>
-			$.get('is-connected', {}, function(isConnected) {
-				if (isConnected === 'true')
-					document.getElementById('connect-status').innerText = 'Mobile phone connected.';
-				else
-					document.getElementById('connect-status').innerText = 'Mobile phone not connected.';
+			var updateStatus;
+			(updateStatus = function() {
+				$.get('is-connected', {}, function(isConnected) {
+					if (isConnected === 'true')
+						document.getElementById('connect-status').innerText = 'Mobile phone connected.';
+					else
+						document.getElementById('connect-status').innerText = 'Mobile phone not connected.';
+				});
+			})();
+			$('#ipForm').submit(function(e) {
+				$('input[type="submit"]').prop('disabled', true);
+				$.ajax({
+					type: 'POST',
+					url: 'set-mobile-ip',
+					data: { ip: $('input[type="text"]').val() },
+					success: function(data) {
+						updateStatus();
+						$('input[type="submit"]').prop('disabled', false);
+					}
+				});
+				e.preventDefault();
 			});
 		</script>
 	</body>
