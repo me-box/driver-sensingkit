@@ -29,5 +29,6 @@
 	],
 
 	"resource-requirements": {
+		"store":"databox-store-passthrough"
 	}
 }
