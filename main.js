@@ -1,4 +1,5 @@
 const https = require('https');
+const stream = require('stream');
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -27,7 +28,7 @@ function canAccessMobile(callback) {
 		callback(false);
 		return;
 	}
-	request("http://" + mobileIP + ":8080", { timeout: 4000 }, (error) => callback(!error));
+	request('http://' + mobileIP + ':8080', { timeout: 4000 }, (error) => callback(!error));
 }
 
 // TODO: Check
@@ -48,7 +49,7 @@ app.get('/status', function(req, res){
 app.get('/ui', function(req, res) {
 	canAccessMobile((can) => {
 		if (can) {
-			request("http://" + mobileIP + ":8080", { timeout: 4000 }, (error, response, body) => {
+			request('http://' + mobileIP + ':8080', { timeout: 4000 }, (error, response, body) => {
 				if (error) {
 					res.render('connect', { ip: mobileIP });
 					return;
@@ -63,35 +64,61 @@ app.get('/ui', function(req, res) {
 });
 
 app.get('/ui/set-mobile-ip', function(req, res){
-	mobileIP = req.query.ip;
+	mobileIP = req.query.ip.trim();
 	res.end();
 });
 
 app.get('/ui/set-sensor-state', function(req, res){
-	sensorStates[req.query.sensor] = JSON.parse(req.query.state);
+	let sensor = req.query.sensor;
+	let state  = JSON.parse(req.query.state);
+	sensorStates[sensor] = state;
+	console.log('Sensor', sensor, 'toggled to', state);
+
+	if (state) {
+		var storeStream = new stream.Writable();
+		storeStream._write = function () {
+			var buffer = '';
+
+			return function (chunk, encoding, done) {
+				if (!sensorStates[sensor]) {
+					done('Sensor ' + sensor + ' toggled off');
+					return;
+				}
+
+				buffer += chunk.toString();
+
+				if (!~buffer.indexOf('\n')) {
+					done();
+					return;
+				}
+
+				while (~buffer.indexOf('\n')) {
+					buffer = buffer.split('\n');
+					databox.timeseries.write(store, sensor, buffer.shift().split(','))
+						.then(() => done())
+						.catch((err) => done(err));
+
+					buffer = buffer.join('\n');
+				}
+			}
+		}();
+
+		console.error('Data stream opening for', sensor);
+		request
+			.get('http://' + mobileIP + ':8080/' + sensor, { forever: true })
+			.on('error', (err) => {
+				// TODO: Kill all streams and refresh UI
+			})
+			.pipe(storeStream)
+			.on('error', (err) => {
+				console.error('Data stream closed for', sensor + ':', err);
+			});
+	}
 	res.end();
 });
 
-
-app.post('/api/*', function(req, res){
-	request("http://" + mobileIP + ":8080/" + req.params[0]).pipe(res);
-});
-
-app.get('/do-stuff', function(req, res){
-	Promise.resolve().then(() => {
-		console.log('write', store);
-		return databox.keyValue.write(store, 'test', { foo: 'bar' });
-	}).then((response) => {
-		console.log(response);
-		console.log('read', store);
-		return databox.keyValue.read(store, 'test');
-	}).then((response) => {
-		console.log(response);
-		res.send();
-	}).catch((err) => {
-		console.error(err);
-		res.send();
-	});
-});
-
-https.createServer(credentials, app).listen(PORT);
+// NOTE: Technically we should check every time we make request, since the status could change,
+//       but then we'd practically double network I/O.
+databox.waitForStoreStatus(store, 'active').then(() => {
+	https.createServer(credentials, app).listen(PORT);
+}).catch((err) => console.error(err));
