@@ -23,13 +23,15 @@ const credentials = {
 app.enable('trust proxy');
 app.disable('x-powered-by');
 
-app.use(express.static('static'));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use('/ui', express.static('www'));
+app.set('views', './views');
+app.set('view engine', 'pug');
 
-app.get('/*', function(req, res, next){
-	res.header('Access-Control-Allow-Origin', '*');
-	next();
+app.get('/ui', function(req, res) {
+	res.render('index', {});
 });
 
 app.get('/status', function(req, res){
