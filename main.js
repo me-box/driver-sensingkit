@@ -19,48 +19,62 @@ const credentials = {
 	cert: HTTPS_SERVER_CERT,
 };
 
+var mobileIP = null;
+var sensorStates = {};
+
+function canAccessMobile(callback) {
+	if (mobileIP === null) {
+		callback(false);
+		return;
+	}
+	request("http://" + mobileIP + ":8080", { timeout: 4000 }, (error) => callback(!error));
+}
+
 // TODO: Check
 app.enable('trust proxy');
 app.disable('x-powered-by');
 
-app.use(bodyParser.json());
+//app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use('/ui', express.static('www'));
 app.set('views', './views');
 app.set('view engine', 'pug');
 
-app.get('/ui', function(req, res) {
-	res.render('index', {});
+app.get('/status', function(req, res){
+	canAccessMobile((can) => res.send(can ? 'active' : 'standby'));
 });
 
-app.get('/status', function(req, res){
-	if (mobileIp == null) {
-		res.send('standby');
-		return;
-	}
-	request("http://" + mobileIp + ":8080", function(error, response, body){
-		res.send(typeof err != 'undefined' && err !== null ? 'standby' : 'active');
+app.get('/ui', function(req, res) {
+	canAccessMobile((can) => {
+		if (can) {
+			request("http://" + mobileIP + ":8080", { timeout: 4000 }, (error, response, body) => {
+				if (error) {
+					res.render('connect', { ip: mobileIP });
+					return;
+				}
+				let sensors = body.match(/<li>(.*?)<\/li>/g).map((sensor) => sensor.replace(/<(\/?)li>/g, ''));
+				res.render('index', { sensors, sensorStates });
+			});
+			return;
+		}
+		res.render('connect', { ip: mobileIP });
 	});
 });
+
+app.get('/ui/set-mobile-ip', function(req, res){
+	mobileIP = req.query.ip;
+	res.end();
+});
+
+app.get('/ui/set-sensor-state', function(req, res){
+	sensorStates[req.query.sensor] = JSON.parse(req.query.state);
+	res.end();
+});
+
 
 app.post('/api/*', function(req, res){
-	request("http://" + mobileIp + ":8080/" + req.params[0]).pipe(res);
-});
-
-app.get('/is-connected', function(req, res){
-	if (mobileIp == null) {
-		res.send('false');
-		return;
-	}
-	request("http://" + mobileIp + ":8080", function(error, response, body){
-		res.send('' + (error == null));
-	});
-});
-
-app.get('/set-mobile-ip', function(req, res){
-	mobileIp = req.query.ip;
-	res.end();
+	request("http://" + mobileIP + ":8080/" + req.params[0]).pipe(res);
 });
 
 app.get('/do-stuff', function(req, res){
