@@ -8,6 +8,8 @@
 	"author": "Yousef Amar <yousef@amar.io> (http://yousefamar.com/)",
 	"license": "MIT",
 
+	"databox-type": "driver",
+
 	"tags": [
 		"mobile",
 		"phone",
@@ -17,10 +19,10 @@
 		"driver"
 	],
 
-	"homepage": "https://github.com/yousefamar/databox-driver-mobile",
+	"homepage": "https://github.com/me-box/databox-driver-mobile",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/yousefamar/databox-driver-mobile.git"
+		"url": "git+https://github.com/me-box/databox-driver-mobile.git"
 	},
 
 	"network-permissions": [
@@ -29,6 +31,6 @@
 	],
 
 	"resource-requirements": {
-		"store":"databox-store-passthrough"
+		"store":"databox-store-blob"
 	}
 }
