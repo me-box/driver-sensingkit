@@ -1,0 +1,24 @@
+doctype html
+html(lang='en')
+	head
+		title Databox Mobile Driver
+		script(src='ui/jquery-3.2.0.min.js')
+		style.
+			p, ul {
+				margin: 0;
+			}
+			.indent {
+				margin-left: 1em;
+			}
+	body
+		h1 Databox Mobile Driver
+		each sensor in sensors
+			p
+				input(id=sensor + '-checkbox', type='checkbox', checked=sensorStates[sensor])
+				label(for=sensor + '-checkbox') #{sensor}
+			script.
+				$(document).ready(function(){
+					$('##{sensor}-checkbox').change(function(){
+						$.get('ui/set-sensor-state', { sensor: '#{sensor}', state: this.checked });
+					});
+				});
