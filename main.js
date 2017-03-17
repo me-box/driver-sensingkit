@@ -1,8 +1,24 @@
+const https = require('https');
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const request = require('request');
 
-let app = express();
+const PORT = process.env.PORT || 8080;
+
+const HTTPS_SERVER_CERT = process.env.HTTPS_SERVER_CERT || '';
+const HTTPS_SERVER_PRIVATE_KEY = process.env.HTTPS_SERVER_PRIVATE_KEY || '';
+
+const app = express();
+
+const credentials = {
+	key:  HTTPS_SERVER_PRIVATE_KEY,
+	cert: HTTPS_SERVER_CERT,
+};
+
+// TODO: Check
+app.enable('trust proxy');
+app.disable('x-powered-by');
 
 app.use(express.static('static'));
 
@@ -42,4 +58,4 @@ app.get('/set-mobile-ip', function(req, res){
 	res.end();
 });
 
-app.listen(8080);
+https.createServer(credentials, app).listen(PORT);
