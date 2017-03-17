@@ -4,7 +4,7 @@
   "description": "A Databox driver that provides SensingKit mobile sensor data",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "lsc main.ls",
+    "start": "node main.js",
     "release": "docker build -t databox-driver-mobile . && docker tag databox-driver-mobile amar.io:5000/databox-driver-mobile && docker push amar.io:5000/databox-driver-mobile"
   },
   "repository": {
@@ -28,7 +28,7 @@
   "dependencies": {
     "body-parser": "^1.14.2",
     "express": "^4.13.4",
-    "livescript": "^1.4.0",
+    "node-databox": "^0.2.7",
     "request": "^2.74.0"
   }
 }
