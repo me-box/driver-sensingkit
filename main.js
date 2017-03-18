@@ -21,6 +21,7 @@ const credentials = {
 };
 
 var mobileIP = null;
+var sensors = [];
 var sensorStates = {};
 
 function canAccessMobile(callback) {
@@ -28,7 +29,28 @@ function canAccessMobile(callback) {
 		callback(false);
 		return;
 	}
-	request('http://' + mobileIP + ':8080', { timeout: 4000 }, (error) => callback(!error));
+	request('http://' + mobileIP + ':8080', { timeout: 4000 }, (error, response, body) => {
+		if (error) {
+			callback(false);
+			return;
+		}
+		let currSensors = body.match(/<li>(.*?)<\/li>/g).map((sensor) => sensor.replace(/<(\/?)li>/g, ''));
+		// TODO: See me-box/databox-store-blob #42
+		//let oldSensors  = sensor.filter((sensor) => !currSensors.includes(sensor));
+		let newSensors  = currSensors.filter((sensor) => !sensors.includes(sensor));
+		sensors = currSensors;
+
+		Promise.all(newSensors.map((sensor) => databox.catalog.registerDatasource(store, {
+			description: 'Mobile phone ' + sensor + ' sensor',
+			contentType: 'text/csv',
+			vendor: 'Databox Inc.',
+			type: sensor,
+			datasourceid: sensor,
+			storeType: 'databox-store-blob'
+		})));
+
+		callback(true);
+	});
 }
 
 // TODO: Check
@@ -49,14 +71,7 @@ app.get('/status', function(req, res){
 app.get('/ui', function(req, res) {
 	canAccessMobile((can) => {
 		if (can) {
-			request('http://' + mobileIP + ':8080', { timeout: 4000 }, (error, response, body) => {
-				if (error) {
-					res.render('connect', { ip: mobileIP });
-					return;
-				}
-				let sensors = body.match(/<li>(.*?)<\/li>/g).map((sensor) => sensor.replace(/<(\/?)li>/g, ''));
-				res.render('index', { sensors, sensorStates });
-			});
+			res.render('index', { sensors, sensorStates });
 			return;
 		}
 		res.render('connect', { ip: mobileIP });
@@ -69,52 +84,57 @@ app.get('/ui/set-mobile-ip', function(req, res){
 });
 
 app.get('/ui/set-sensor-state', function(req, res){
-	let sensor = req.query.sensor;
-	let state  = JSON.parse(req.query.state);
+	let sensor    = req.query.sensor;
+	let state     = JSON.parse(req.query.state);
+	let prevState = sensorStates[sensor];
 	sensorStates[sensor] = state;
 	console.log('Sensor', sensor, 'toggled to', state);
 
-	if (state) {
-		var storeStream = new stream.Writable();
-		storeStream._write = function () {
-			var buffer = '';
-
-			return function (chunk, encoding, done) {
-				if (!sensorStates[sensor]) {
-					done('Sensor ' + sensor + ' toggled off');
-					return;
-				}
-
-				buffer += chunk.toString();
-
-				if (!~buffer.indexOf('\n')) {
-					done();
-					return;
-				}
-
-				while (~buffer.indexOf('\n')) {
-					buffer = buffer.split('\n');
-					databox.timeseries.write(store, sensor, buffer.shift().split(','))
-						.then(() => done())
-						.catch((err) => done(err));
-
-					buffer = buffer.join('\n');
-				}
-			}
-		}();
-
-		console.error('Data stream opening for', sensor);
-		request
-			.get('http://' + mobileIP + ':8080/' + sensor, { forever: true })
-			.on('error', (err) => {
-				// TODO: Kill all streams and refresh UI
-			})
-			.pipe(storeStream)
-			.on('error', (err) => {
-				console.error('Data stream closed for', sensor + ':', err);
-			});
+	if (!state || prevState) {
+		res.send();
+		return;
 	}
-	res.end();
+
+	var storeStream = new stream.Writable();
+	storeStream._write = function () {
+		var buffer = '';
+
+		return function (chunk, encoding, done) {
+			if (!sensorStates[sensor]) {
+				done('Sensor ' + sensor + ' toggled off');
+				return;
+			}
+
+			buffer += chunk.toString();
+
+			if (!~buffer.indexOf('\n')) {
+				done();
+				return;
+			}
+
+			while (~buffer.indexOf('\n')) {
+				buffer = buffer.split('\n');
+				databox.timeseries.write(store, sensor, buffer.shift().split(','))
+					.then(() => done())
+					.catch((err) => done(err));
+
+				buffer = buffer.join('\n');
+			}
+		}
+	}();
+
+	console.error('Data stream opening for', sensor);
+	request
+		.get('http://' + mobileIP + ':8080/' + sensor, { forever: true })
+		.on('error', (err) => {
+			sensorStates[sensor] = false;
+			console.error('Failed to open data stream for', sensor + ':', err);
+		})
+		.pipe(storeStream)
+		.on('error', (err) => {
+			sensorStates[sensor] = false;
+			console.error('Data stream closed for', sensor + ':', err);
+		});
 });
 
 // NOTE: Technically we should check every time we make request, since the status could change,
