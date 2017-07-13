@@ -1,7 +1,7 @@
 {
 	"manifest-version": 1,
 
-	"name": "databox-driver-mobile",
+	"name": "driver-sensingkit",
 	"version": "0.1.0",
 
 	"description": "A Databox driver that provides SensingKit mobile sensor data",
@@ -19,10 +19,10 @@
 		"driver"
 	],
 
-	"homepage": "https://github.com/me-box/databox-driver-mobile",
+	"homepage": "https://github.com/me-box/driver-sensingkit",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/me-box/databox-driver-mobile.git"
+		"url": "git+https://github.com/me-box/driver-sensingkit.git"
 	},
 
 	"network-permissions": [

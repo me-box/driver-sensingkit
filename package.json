@@ -1,15 +1,15 @@
 {
-  "name": "databox-driver-mobile",
+  "name": "driver-sensingkit",
   "version": "0.1.0",
   "description": "A Databox driver that provides SensingKit mobile sensor data",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node main.js",
-    "release": "docker build -t databox-driver-mobile . && docker tag databox-driver-mobile amar.io:5000/databox-driver-mobile && docker push amar.io:5000/databox-driver-mobile"
+    "release": "docker build -t driver-sensingkit . && docker tag driver-sensingkit amar.io:5000/driver-sensingkit && docker push amar.io:5000/driver-sensingkit"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yousefamar/databox-driver-mobile.git"
+    "url": "git+https://github.com/yousefamar/driver-sensingkit.git"
   },
   "keywords": [
     "docker",
@@ -22,13 +22,13 @@
   "author": "Yousef Amar <yousef@amar.io> (http://yousefamar.com/)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/yousefamar/databox-driver-mobile/issues"
+    "url": "https://github.com/yousefamar/driver-sensingkit/issues"
   },
-  "homepage": "https://github.com/yousefamar/databox-driver-mobile#readme",
+  "homepage": "https://github.com/yousefamar/driver-sensingkit#readme",
   "dependencies": {
     "body-parser": "^1.14.2",
     "express": "^4.13.4",
-    "node-databox": "^0.2.8",
+    "node-databox": "^0.5.1",
     "pug": "^2.0.0-beta11",
     "request": "^2.74.0"
   }

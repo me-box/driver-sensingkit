@@ -1,4 +1,4 @@
-# Databox Mobile Driver
+# Databox Sensingkit Driver
 
 A Databox driver that provides SensingKit mobile sensor data
 
