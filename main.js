@@ -5,20 +5,20 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const request = require('request');
 const databox = require('node-databox');
+const fs = require('fs');
 
-const PORT = process.env.PORT || 8080;
+const HTTPS_SECRETS = JSON.parse( fs.readFileSync("/run/secrets/DATABOX_PEM") );
+var credentials = {
+  key:  HTTPS_SECRETS.clientprivate || '',
+  cert: HTTPS_SECRETS.clientcert || '',
+};		
+const PORT = process.env.port || '8080';
 
-const HTTPS_SERVER_CERT = process.env.HTTPS_SERVER_CERT || '';
-const HTTPS_SERVER_PRIVATE_KEY = process.env.HTTPS_SERVER_PRIVATE_KEY || '';
 
-const store = process.env.DATABOX_DRIVER_MOBILE_DATABOX_STORE_BLOB_ENDPOINT;
+const store = process.env.DATABOX_STORE_ENDPOINT;
 
 const app = express();
 
-const credentials = {
-	key:  HTTPS_SERVER_PRIVATE_KEY,
-	cert: HTTPS_SERVER_CERT,
-};
 
 var mobileIP = null;
 var sensors = [];
@@ -139,6 +139,6 @@ app.get('/ui/set-sensor-state', function(req, res){
 
 // NOTE: Technically we should check every time we make request, since the status could change,
 //       but then we'd practically double network I/O.
-databox.waitForStoreStatus(store, 'active').then(() => {
+databox.waitForStoreStatus(store, 'active', 10).then(() => {
 	https.createServer(credentials, app).listen(PORT);
 }).catch((err) => console.error(err));

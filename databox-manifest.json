@@ -31,6 +31,6 @@
 	],
 
 	"resource-requirements": {
-		"store":"databox-store-blob"
+		"store":"store-json"
 	}
 }
