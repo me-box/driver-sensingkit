@@ -7,11 +7,8 @@ const request = require('request');
 const databox = require('node-databox');
 const fs = require('fs');
 
-const HTTPS_SECRETS = JSON.parse( fs.readFileSync("/run/secrets/DATABOX_PEM") );
-var credentials = {
-  key:  HTTPS_SECRETS.clientprivate || '',
-  cert: HTTPS_SECRETS.clientcert || '',
-};		
+const credentials = databox.getHttpsCredentials();
+
 const PORT = process.env.port || '8080';
 
 
