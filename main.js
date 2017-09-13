@@ -5,28 +5,26 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const request = require('request');
 const databox = require('node-databox');
-const fs = require('fs');
+
 
 const credentials = databox.getHttpsCredentials();
 
 const PORT = process.env.port || '8080';
 
-
 const store = process.env.DATABOX_STORE_ENDPOINT;
 
 const app = express();
 
-
-var mobileIP = null;
-var sensors = [];
-var sensorStates = {};
+let mobileIP = null;
+let sensors = [];
+let sensorStates = {};
 
 function canAccessMobile(callback) {
 	if (mobileIP === null) {
 		callback(false);
 		return;
 	}
-	request('http://' + mobileIP + ':8080', { timeout: 4000 }, (error, response, body) => {
+	request('http://' + mobileIP + ':8080', {timeout: 4000}, (error, response, body) => {
 		if (error) {
 			callback(false);
 			return;
@@ -34,7 +32,7 @@ function canAccessMobile(callback) {
 		let currSensors = body.match(/<li>(.*?)<\/li>/g).map((sensor) => sensor.replace(/<(\/?)li>/g, ''));
 		// TODO: See me-box/databox-store-blob #42
 		//let oldSensors  = sensor.filter((sensor) => !currSensors.includes(sensor));
-		let newSensors  = currSensors.filter((sensor) => !sensors.includes(sensor));
+		let newSensors = currSensors.filter((sensor) => !sensors.includes(sensor));
 		sensors = currSensors;
 
 		Promise.all(newSensors.map((sensor) => databox.catalog.registerDatasource(store, {
@@ -55,35 +53,35 @@ app.enable('trust proxy');
 app.disable('x-powered-by');
 
 //app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({extended: true}));
 
 app.use('/ui', express.static('www'));
 app.set('views', './views');
 app.set('view engine', 'pug');
 
-app.get('/status', function(req, res){
+app.get('/status', function (req, res) {
 	canAccessMobile((can) => res.send(can ? 'active' : 'standby'));
 });
 
-app.get('/ui', function(req, res) {
+app.get('/ui', function (req, res) {
 	canAccessMobile((can) => {
 		if (can) {
-			res.render('index', { sensors, sensorStates });
+			res.render('index', {sensors, sensorStates});
 			return;
 		}
-		res.render('connect', { ip: mobileIP });
+		res.render('connect', {ip: mobileIP});
 	});
 });
 
-app.get('/ui/set-mobile-ip', function(req, res){
+app.get('/ui/set-mobile-ip', function (req, res) {
 	mobileIP = req.query.ip.trim();
 	res.end();
 });
 
-app.get('/ui/set-sensor-state', function(req, res){
-	let sensor    = req.query.sensor;
-	let state     = JSON.parse(req.query.state);
-	let prevState = sensorStates[sensor];
+app.get('/ui/set-sensor-state', function (req, res) {
+	const sensor = req.query.sensor;
+	const state = JSON.parse(req.query.state);
+	const prevState = sensorStates[sensor];
 	sensorStates[sensor] = state;
 	console.log('Sensor', sensor, 'toggled to', state);
 
@@ -92,9 +90,9 @@ app.get('/ui/set-sensor-state', function(req, res){
 		return;
 	}
 
-	var storeStream = new stream.Writable();
+	const storeStream = new stream.Writable();
 	storeStream._write = function () {
-		var buffer = '';
+		let buffer = '';
 
 		return function (chunk, encoding, done) {
 			if (!sensorStates[sensor]) {
@@ -122,7 +120,7 @@ app.get('/ui/set-sensor-state', function(req, res){
 
 	console.error('Data stream opening for', sensor);
 	request
-		.get('http://' + mobileIP + ':8080/' + sensor, { forever: true })
+		.get('http://' + mobileIP + ':8080/' + sensor, {forever: true})
 		.on('error', (err) => {
 			sensorStates[sensor] = false;
 			console.error('Failed to open data stream for', sensor + ':', err);
@@ -132,6 +130,8 @@ app.get('/ui/set-sensor-state', function(req, res){
 			sensorStates[sensor] = false;
 			console.error('Data stream closed for', sensor + ':', err);
 		});
+
+	res.send();
 });
 
 // NOTE: Technically we should check every time we make request, since the status could change,
