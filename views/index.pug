@@ -3,26 +3,10 @@ html(lang='en')
 	head
 		title Databox Mobile Driver
 		script(src='ui/material-components-web.min.js')
-		script(src='ui/jquery-3.2.0.min.js')
 		link(href='ui/material-components-web.min.css', type="text/css", rel="stylesheet")
 	body(style="margin-left: 0; margin-right: 0; margin-bottom: 16px")
-		div.mdc-grid-list.mdc-elevation--z3(style="background-color: white; padding: 16px")
-			div.mdc-typography--title(style="padding: 8px")
-				| Sensors
-			each sensor in sensors
-				div
-					div.mdc-form-field
-						div.mdc-checkbox
-							input.mdc-checkbox__native-control(type="checkbox", id=sensor + '-checkbox', checked=sensorStates[sensor])
-							div.mdc-checkbox__background
-								svg.mdc-checkbox__checkmark(viewBox="0 0 24 24")
-									path.mdc-checkbox__checkmark__path(fill="none", stroke="white", d="M1.73,12.91 8.1,19.28 22.79,4.59")
-								div.mdc-checkbox__mixedmark
-						label(for=sensor + '-checkbox')
-							= sensor
-					script.
-						$(document).ready(function(){
-							$('##{sensor}-checkbox').change(function(){
-								$.get('ui/set-sensor-state', { sensor: '#{sensor}', state: this.checked });
-							});
-						});
+		div.mdc-elevation--z3(style="background-color: white; padding: 16px")
+			| Please install the Databox App
+			div
+				a(href='https://play.google.com/store/apps/details?id=io.databox.app')
+					img(alt='Get it on Google Play', src='https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png')
