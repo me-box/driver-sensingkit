@@ -1,18 +1,13 @@
 const https = require('https');
-const stream = require('stream');
-
 const express = require('express');
+const stream = require('stream');
 const bodyParser = require('body-parser');
 const request = require('request');
 const databox = require('node-databox');
 
-
 const credentials = databox.getHttpsCredentials();
-
 const PORT = process.env.port || '8080';
-
 const store = process.env.DATABOX_STORE_ENDPOINT;
-
 const app = express();
 
 let mobileIP = null;
@@ -48,22 +43,21 @@ function canAccessMobile(callback) {
 	});
 }
 
-// TODO: Check
+
 app.enable('trust proxy');
 app.disable('x-powered-by');
 
-//app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
 app.use('/ui', express.static('www'));
 app.set('views', './views');
 app.set('view engine', 'pug');
 
-app.get('/status', function (req, res) {
+app.get('/status', (req, res) => {
 	canAccessMobile((can) => res.send(can ? 'active' : 'standby'));
 });
 
-app.get('/ui', function (req, res) {
+app.get('/ui', (req, res) => {
 	canAccessMobile((can) => {
 		if (can) {
 			res.render('index', {sensors, sensorStates});
@@ -73,12 +67,12 @@ app.get('/ui', function (req, res) {
 	});
 });
 
-app.get('/ui/set-mobile-ip', function (req, res) {
+app.get('/ui/set-mobile-ip', (req, res) => {
 	mobileIP = req.query.ip.trim();
 	res.end();
 });
 
-app.get('/ui/set-sensor-state', function (req, res) {
+app.get('/ui/set-sensor-state', (req, res) => {
 	const sensor = req.query.sensor;
 	const state = JSON.parse(req.query.state);
 	const prevState = sensorStates[sensor];
@@ -132,6 +126,34 @@ app.get('/ui/set-sensor-state', function (req, res) {
 		});
 
 	res.send();
+});
+
+app.post('/ui/:sensor/data', (req, res) => {
+	const sensor = req.params.sensor;
+	console.log("Receiving " + sensor + " data");
+	let buffer = '';
+
+	req.on('data', function (chunk) {
+		buffer += chunk;
+		if (!~buffer.indexOf('\n')) {
+			return;
+		}
+
+		while (buffer.indexOf('\n') >= 0) {
+			buffer = buffer.split('\n');
+			//console.error("Sending " + sensor + " data: " + buffer[0]);
+			databox.timeseries.write(store, sensor, buffer.shift().split(','))
+				.catch((err) => console.log(err));
+
+			buffer = buffer.join('\n');
+		}
+	});
+
+	req.on('end', function () {
+		console.log("End of " + sensor + " data");
+		res.status(200);
+		res.send("Success");
+	});
 });
 
 // NOTE: Technically we should check every time we make request, since the status could change,

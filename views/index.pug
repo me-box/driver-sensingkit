@@ -21,8 +21,11 @@ html(lang='en')
 						label(for=sensor + '-checkbox')
 							= sensor
 					script.
-						$(document).ready(function(){
-							$('##{sensor}-checkbox').change(function(){
-								$.get('ui/set-sensor-state', { sensor: '#{sensor}', state: this.checked });
+						$(document).ready(function () {
+							$('##{sensor}-checkbox').change(function () {
+								$.get('ui/set-sensor-state', {
+									sensor: '#{sensor}',
+									state: this.checked
+								});
 							});
 						});
