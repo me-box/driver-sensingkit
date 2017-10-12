@@ -47,8 +47,6 @@ function canAccessMobile(callback) {
 app.enable('trust proxy');
 app.disable('x-powered-by');
 
-app.use(bodyParser.urlencoded({extended: true}));
-
 app.use('/ui', express.static('www'));
 app.set('views', './views');
 app.set('view engine', 'pug');
@@ -129,31 +127,43 @@ app.get('/ui/set-sensor-state', (req, res) => {
 });
 
 app.post('/ui/:sensor/data', (req, res) => {
-	const sensor = req.params.sensor;
+	const sensor = req.params.sensor.toLocaleLowerCase();
 	console.log("Receiving " + sensor + " data");
 	let buffer = '';
 
-	req.on('data', function (chunk) {
-		buffer += chunk;
-		if (!~buffer.indexOf('\n')) {
-			return;
-		}
+	if (!sensors.includes(sensor)) {
+		console.log("Register " + sensor);
+		databox.catalog.registerDatasource(store, {
+			description: 'Mobile phone ' + sensor + ' sensor',
+			contentType: 'text/csv',
+			vendor: 'Databox Inc.',
+			type: sensor,
+			datasourceid: sensor,
+			storeType: 'databox-store-blob'
+		});
+		sensors.push(sensor);
+	}
 
-		while (buffer.indexOf('\n') >= 0) {
-			buffer = buffer.split('\n');
-			//console.error("Sending " + sensor + " data: " + buffer[0]);
-			databox.timeseries.write(store, sensor, buffer.shift().split(','))
-				.catch((err) => console.log(err));
+	req
+		.on('data', function (chunk) {
+			buffer += chunk;
+			if (!~buffer.indexOf('\n')) {
+				return;
+			}
 
-			buffer = buffer.join('\n');
-		}
-	});
+			while (buffer.indexOf('\n') >= 0) {
+				buffer = buffer.split('\n');
+				//console.error("Sending " + sensor + " data: " + buffer[0]);
+				databox.timeseries.write(store, sensor, buffer.shift().split(','))
+					.catch((err) => console.log(err));
 
-	req.on('end', function () {
-		console.log("End of " + sensor + " data");
-		res.status(200);
-		res.send("Success");
-	});
+				buffer = buffer.join('\n');
+			}
+		})
+		.on('end', function () {
+			res.status(200);
+			res.send("Success");
+		});
 });
 
 // NOTE: Technically we should check every time we make request, since the status could change,
