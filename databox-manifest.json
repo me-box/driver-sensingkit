@@ -2,7 +2,7 @@
 	"manifest-version": 1,
 
 	"name": "driver-sensingkit",
-	"version": "0.2.1",
+	"version": "0.2.2",
 	"description": "A Databox driver that provides SensingKit mobile sensor data",
 	"author": "Yousef Amar <yousef@amar.io> (http://yousefamar.com/)",
 	"license": "MIT",
