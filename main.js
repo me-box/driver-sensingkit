@@ -4,7 +4,8 @@ const databox = require('node-databox');
 
 const credentials = databox.getHttpsCredentials();
 const PORT = process.env.port || '8080';
-const store = process.env.DATABOX_STORE_ENDPOINT;
+const DATABOX_ZMQ_ENDPOINT = process.env.DATABOX_ZMQ_ENDPOINT
+
 const app = express();
 
 let sensors = [];
@@ -32,14 +33,18 @@ app.post('/ui/:sensor/data', (req, res) => {
 
 	if (!sensors.includes(sensor)) {
 		console.log("Register " + sensor);
-		databox.catalog.registerDatasource(store, {
-			description: 'Mobile phone ' + sensor + ' sensor',
-			contentType: 'text/csv',
-			vendor: 'Databox Inc.',
-			type: sensor,
-			datasourceid: sensor,
-			storeType: 'databox-store-blob'
-		});
+		let metadata = databox.NewDataSourceMetadata();
+		metadata.Description = 'Mobile phone ' + sensor + ' sensor';
+		metadata.ContentType = 'text/csv';
+		metadata.Vendor = 'Databox Inc.';
+		metadata.Unit = '';
+		metadata.DataSourceType = sensor;
+		metadata.DataSourceID = sensor;
+		metadata.StoreType = 'ts';
+		tsc.RegisterDatasource(metadata)
+		.catch((err)=>{
+			console.log("Error registering sensor ", sensor);
+		})
 		sensors.push(sensor);
 	}
 
@@ -52,8 +57,9 @@ app.post('/ui/:sensor/data', (req, res) => {
 
 			while (buffer.indexOf('\n') >= 0) {
 				buffer = buffer.split('\n');
-				//console.error("Sending " + sensor + " data: " + buffer[0]);
-				databox.timeseries.write(store, sensor, buffer.shift().split(','))
+				let data = buffer.shift().split(',')
+				console.log("Sending " + sensor + " data: " + data);
+				tsc.Write(sensor, data)
 					.catch((err) => console.log(err));
 
 				buffer = buffer.join('\n');
@@ -65,8 +71,8 @@ app.post('/ui/:sensor/data', (req, res) => {
 		});
 });
 
-// NOTE: Technically we should check every time we make request, since the status could change,
-//       but then we'd practically double network I/O.
-databox.waitForStoreStatus(store, 'active', 10).then(() => {
-	https.createServer(credentials, app).listen(PORT);
-}).catch((err) => console.error(err));
+//connect to the store
+let tsc = databox.NewTimeSeriesClient(DATABOX_ZMQ_ENDPOINT, false);
+
+//start the http server
+https.createServer(credentials, app).listen(PORT);
