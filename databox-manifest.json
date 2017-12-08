@@ -30,6 +30,6 @@
 	],
 
 	"resource-requirements": {
-		"store":"store-json"
+		"store":"core-store"
 	}
 }
