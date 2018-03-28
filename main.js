@@ -72,7 +72,7 @@ app.post('/ui/:sensor/data', (req, res) => {
 });
 
 //connect to the store
-let tsc = databox.NewTimeSeriesClient(DATABOX_ZMQ_ENDPOINT, false);
+let tsc = databox.NewTimeSeriesBlobClient(DATABOX_ZMQ_ENDPOINT, false);
 
 //start the http server
 https.createServer(credentials, app).listen(PORT);
