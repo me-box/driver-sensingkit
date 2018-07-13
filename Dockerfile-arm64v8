@@ -1,4 +1,4 @@
-FROM arm64v8/alpine
+FROM arm64v8/alpine:3.8
 RUN apk --no-cache add build-base pkgconfig nodejs npm git libzmq zeromq-dev alpine-sdk libsodium-dev && \
 npm install zeromq --zmq-external --save && \
 apk del alpine-sdk libsodium-dev build-base pkgconfig git krb5-dev
