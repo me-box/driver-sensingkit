@@ -5,7 +5,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node main.js",
-    "release": "docker build -t driver-sensingkit . && docker tag driver-sensingkit amar.io:5000/driver-sensingkit && docker push amar.io:5000/driver-sensingkit"
+    "clean": "node ./node_modules/modclean/bin/modclean.js -p ./node_modules/ -r"
   },
   "repository": {
     "type": "git",
@@ -28,7 +28,8 @@
   "dependencies": {
     "body-parser": "^1.14.2",
     "express": "^4.13.4",
-    "node-databox": "^0.7.5",
+    "node-databox": "^0.8.0",
+    "modclean": "^2.1.2",
     "pug": "^2.0.0-beta11",
     "request": "^2.74.0"
   }
