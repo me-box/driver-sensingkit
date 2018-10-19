@@ -1,14 +1,15 @@
 FROM amd64/alpine:3.8
 
-RUN apk add --update make gcc g++ python nodejs npm curl git krb5-dev zeromq-dev && \
-npm install zeromq --zmq-external --save && \
-apk del make gcc g++ python curl git krb5-dev
+WORKDIR /app
 
-ADD ./package.json /package.json
+RUN addgroup -S databox && adduser -S -g databox databox && \
+apk --no-cache add build-base pkgconfig nodejs npm git libzmq zeromq-dev libsodium-dev python  && \
+npm install zeromq@4.6.0 --zmq-external --unsafe-perm --verbose && \
+apk del build-base pkgconfig libsodium-dev python zeromq-dev
+
+
+ADD ./package.json package.json
 RUN npm install --production && npm run clean
-
-RUN addgroup -S databox && adduser -S -g databox databox
-USER databox
 
 ADD . .
 
@@ -16,5 +17,6 @@ LABEL databox.type="driver"
 
 EXPOSE 8080
 
+USER databox
 CMD ["npm","start"]
 #CMD ["sleep","2147483647"]

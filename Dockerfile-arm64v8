@@ -1,14 +1,11 @@
-FROM arm64v8/alpine:3.8
-RUN apk --no-cache add build-base pkgconfig nodejs npm git libzmq zeromq-dev alpine-sdk libsodium-dev && \
-npm install zeromq --zmq-external --save && \
-apk del alpine-sdk libsodium-dev build-base pkgconfig git krb5-dev
+FROM databoxsystems/databox-node-arm64v8-base:0.0.3
 
-COPY . .
+ADD ./package.json package.json
 RUN npm install --production
+ADD . .
 
 LABEL databox.type="driver"
 
 EXPOSE 8080
 
 CMD ["npm","start"]
-#CMD ["sleep","2147483647"]
