@@ -44,7 +44,7 @@ app.post('/ui/:sensor/data', (req, res) => {
 		metadata.Unit = '';
 		metadata.DataSourceType = sensor;
 		metadata.DataSourceID = sensor;
-		metadata.StoreType = 'ts';
+		metadata.StoreType = 'ts/blob';
 		store.RegisterDatasource(metadata)
 		.catch((err)=>{
 			console.log("Error registering sensor ", sensor);
@@ -66,12 +66,14 @@ app.post('/ui/:sensor/data', (req, res) => {
 					continue
 				try {
 					// time,value
-					let csv = row.split(',')
-					// TS must have number value and optional string tag (1 only)
-					let data = { value: Number(csv[1]) }
+					let values = row.split(',')
+					// TS must have a single number value and optional string tag (1 only)
+					// so we stick to TSBlob for now.
+					// like the old version we leave them as strings for now.
+					let data = values
 					console.log("Sending " + sensor + " data: " + JSON.stringify(data));
-					// could use WriteAt to keep device time
-					store.TS.Write(sensor, data)
+					// could use WriteAt use device time in store
+					store.TSBlob.Write(sensor, data)
 					.catch((err) => console.log('error writing data', err));
 				} catch (err) {
 					console.log('error handling ' + sensor + ' value ' + row + ': ', err)
