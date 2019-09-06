@@ -2,9 +2,10 @@ const https = require('https');
 const express = require('express');
 const databox = require('node-databox');
 
-const credentials = databox.getHttpsCredentials();
+const credentials = databox.GetHttpsCredentials();
 const PORT = process.env.port || '8080';
 const DATABOX_ZMQ_ENDPOINT = process.env.DATABOX_ZMQ_ENDPOINT
+const DATABOX_ARBITER_ENDPOINT = process.env.DATABOX_ARBITER_ENDPOINT
 
 const app = express();
 
@@ -26,6 +27,9 @@ app.get('/ui', (req, res) => {
 	res.render('index', {sensors, sensorStates});
 });
 
+//connect to the store
+let store = databox.NewStoreClient(DATABOX_ZMQ_ENDPOINT, DATABOX_ARBITER_ENDPOINT, false);
+
 app.post('/ui/:sensor/data', (req, res) => {
 	const sensor = req.params.sensor.toLocaleLowerCase();
 	console.log("Receiving " + sensor + " data");
@@ -41,7 +45,7 @@ app.post('/ui/:sensor/data', (req, res) => {
 		metadata.DataSourceType = sensor;
 		metadata.DataSourceID = sensor;
 		metadata.StoreType = 'ts';
-		tsc.RegisterDatasource(metadata)
+		store.RegisterDatasource(metadata)
 		.catch((err)=>{
 			console.log("Error registering sensor ", sensor);
 		})
@@ -55,14 +59,23 @@ app.post('/ui/:sensor/data', (req, res) => {
 				return;
 			}
 
-			while (buffer.indexOf('\n') >= 0) {
-				buffer = buffer.split('\n');
-				let data = buffer.shift().split(',')
-				console.log("Sending " + sensor + " data: " + data);
-				tsc.Write(sensor, data)
-					.catch((err) => console.log(err));
-
-				buffer = buffer.join('\n');
+			buffer = buffer.split('\n')
+			while (buffer.length > 0) {
+				let row = buffer.shift()
+				if (row.length == 0)
+					continue
+				try {
+					// time,value
+					let csv = row.split(',')
+					// TS must have number value and optional string tag (1 only)
+					let data = { value: Number(csv[1]) }
+					console.log("Sending " + sensor + " data: " + JSON.stringify(data));
+					// could use WriteAt to keep device time
+					store.TS.Write(sensor, data)
+					.catch((err) => console.log('error writing data', err));
+				} catch (err) {
+					console.log('error handling ' + sensor + ' value ' + row + ': ', err)
+				}
 			}
 		})
 		.on('end', function () {
@@ -70,9 +83,6 @@ app.post('/ui/:sensor/data', (req, res) => {
 			res.send("Success");
 		});
 });
-
-//connect to the store
-let tsc = databox.NewTimeSeriesBlobClient(DATABOX_ZMQ_ENDPOINT, false);
 
 //start the http server
 https.createServer(credentials, app).listen(PORT);
