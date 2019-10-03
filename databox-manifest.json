@@ -2,7 +2,7 @@
 	"manifest-version": 1,
 
 	"name": "driver-sensingkit",
-	"version": "0.2.3",
+	"version": "0.2.4",
 	"description": "A Databox driver that provides SensingKit mobile sensor data",
 	"author": "Yousef Amar <yousef@amar.io> (http://yousefamar.com/)",
 	"license": "MIT",
@@ -31,5 +31,32 @@
 
 	"resource-requirements": {
 		"store":"core-store"
-	}
+	},
+	"provides": [
+		{
+			"data-source-type": "light",
+			"description": "Mobile phone light sensor",
+			"store-type": "ts/blob"
+		},
+		{
+			"data-source-type": "gravity",
+			"description": "Mobile phone gravity sensor",
+			"store-type": "ts/blob"
+		},
+		{
+			"data-source-type": "battery",
+			"description": "Mobile phone battery sensor",
+			"store-type": "ts/blob"
+		},
+		{
+			"data-source-type": "accelerometer",
+			"description": "Mobile phone accelerometer sensor",
+			"store-type": "ts/blob"
+		},
+		{
+			"data-source-type": "step counter",
+			"description": "Mobile phone step counter sensor",
+			"store-type": "ts/blob"
+		}
+	]
 }

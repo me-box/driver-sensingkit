@@ -30,11 +30,9 @@ app.get('/ui', (req, res) => {
 //connect to the store
 let store = databox.NewStoreClient(DATABOX_ZMQ_ENDPOINT, DATABOX_ARBITER_ENDPOINT, false);
 
-app.post('/ui/:sensor/data', (req, res) => {
-	const sensor = req.params.sensor.toLocaleLowerCase();
-	console.log("Receiving " + sensor + " data");
-	let buffer = '';
+let DEFAULT_SENSORS = ['light', 'gravity', 'battery', 'accelerometer', 'step counter'];
 
+function registerSensor(sensor) {
 	if (!sensors.includes(sensor)) {
 		console.log("Register " + sensor);
 		let metadata = databox.NewDataSourceMetadata();
@@ -50,7 +48,19 @@ app.post('/ui/:sensor/data', (req, res) => {
 			console.log("Error registering sensor ", sensor);
 		})
 		sensors.push(sensor);
-	}
+	}	
+}
+
+for (let sensor of DEFAULT_SENSORS) {
+	registerSensor(sensor);
+}
+
+app.post('/ui/:sensor/data', (req, res) => {
+	const sensor = req.params.sensor.toLocaleLowerCase();
+	console.log("Receiving " + sensor + " data");
+	let buffer = '';
+
+	registerSensor(sensor);
 
 	req
 		.on('data', function (chunk) {
