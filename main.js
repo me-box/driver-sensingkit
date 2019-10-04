@@ -30,7 +30,7 @@ app.get('/ui', (req, res) => {
 //connect to the store
 let store = databox.NewStoreClient(DATABOX_ZMQ_ENDPOINT, DATABOX_ARBITER_ENDPOINT, false);
 
-let DEFAULT_SENSORS = ['light', 'gravity', 'battery', 'accelerometer', 'step counter'];
+let DEFAULT_SENSORS = ['light', 'gravity', 'battery', 'accelerometer', 'step_counter'];
 
 function registerSensor(sensor) {
 	if (!sensors.includes(sensor)) {
@@ -56,7 +56,7 @@ for (let sensor of DEFAULT_SENSORS) {
 }
 
 app.post('/ui/:sensor/data', (req, res) => {
-	const sensor = req.params.sensor.toLocaleLowerCase();
+	const sensor = req.params.sensor.toLocaleLowerCase().replace(' ','_');
 	console.log("Receiving " + sensor + " data");
 	let buffer = '';
 

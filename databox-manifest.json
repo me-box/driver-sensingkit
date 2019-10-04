@@ -54,7 +54,7 @@
 			"store-type": "ts/blob"
 		},
 		{
-			"data-source-type": "step counter",
+			"data-source-type": "step_counter",
 			"description": "Mobile phone step counter sensor",
 			"store-type": "ts/blob"
 		}
