@@ -7,6 +7,7 @@ apk --no-cache add build-base pkgconfig nodejs npm git libzmq zeromq-dev libsodi
 npm install zeromq@4.6.0 --zmq-external --unsafe-perm --verbose && \
 apk del build-base pkgconfig libsodium-dev python zeromq-dev
 
+RUN apk --no-cache add git
 
 ADD ./package.json package.json
 RUN npm install --production && npm run clean

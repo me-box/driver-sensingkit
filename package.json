@@ -1,6 +1,6 @@
 {
   "name": "driver-sensingkit",
-  "version": "0.2.2",
+  "version": "0.2.4",
   "description": "A Databox driver that provides SensingKit mobile sensor data",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -28,7 +28,7 @@
   "dependencies": {
     "body-parser": "^1.14.2",
     "express": "^4.13.4",
-    "node-databox": "^0.9.0",
+    "node-databox": "^0.10.7",
     "modclean": "^2.1.2",
     "pug": "^2.0.0-beta11",
     "request": "^2.74.0"
